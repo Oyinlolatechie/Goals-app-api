@@ -1,19 +1,21 @@
 const express = require('express');
 const { errohandler } = require('./middleware/errorMiddleware');
-const db = require('./config/dbConfig')
 require('dotenv').config()
+const db = require('./config/dbConfig')
 
 const router = require('./routes/goalroutes')
 
 const PORT = process.env.PORT || 3000
+
+console.log( "This is the PORT", PORT)
 const app = express()
 
 
-app.use(express.text()) 
-app.use(express.urlencoded({extended :true}))
+app.use(express.json()) 
+app.use(express.urlencoded({extended :true})) 
 
 
-db.connectToMongoDB()
+db.connectToMongoDB() 
 app.use('/home', router) 
 
 app.use(errohandler)
