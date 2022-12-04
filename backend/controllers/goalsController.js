@@ -3,7 +3,7 @@ const goalModel = require('../models/goalsModel')
 
 //@desc Get goals
 //@route GET /home
-//@access 
+//@access Public
 exports.getGoals = asyncHandler(async (req, res)=> {
 
     const goals = await goalModel.find()
@@ -17,7 +17,7 @@ exports.getGoals = asyncHandler(async (req, res)=> {
 
 //@desc set goals
 //@route POST /home
-//@access 
+//@access Private
 exports.createGoals =  asyncHandler(async (req, res)=> {
     if(!req.body.text){
     res.status(400)

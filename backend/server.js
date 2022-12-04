@@ -1,5 +1,5 @@
 const express = require('express');
-const { errohandler } = require('./middleware/errorMiddleware');
+const { errorHandler } = require('./middleware/errorMiddleware');
 require('dotenv').config()
 const db = require('./config/dbConfig')
 
@@ -18,12 +18,19 @@ app.use(express.urlencoded({extended :true}))
 // Connecting Datatbase
 db.connectToMongoDB() 
 
-//setting middlewares
+//setting routes
 app.use('/api/goals', goalRouter) 
 app.use('/users', userRouter)
 
+//Home routes
+app.get('/', (req, res) => {
+    res.status(200).json({
+        status : "success",
+        message : "Welcome home"
+    })
+})
 
-app.use(errohandler)
+app.use(errorHandler)
 
 app.listen(PORT, ()=>{
     console.log(`server listening on http://localhost:${PORT}`)

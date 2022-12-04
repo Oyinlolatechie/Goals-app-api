@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler')
 const userModel = require('../models/userModel')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const { findById } = require('../models/userModel')
 
 
 //@desc sign up
@@ -20,7 +21,8 @@ exports.signUp = asyncHandler (async (req, res) => {
     //confirm if user already exist
     const userExists = await userModel.findOne({email})
     if(userExists) {
-        res.status(400).json("Email already exists!")
+        res.status(400)
+        throw new Error ("Email already exists!")
     } 
 
     //hash inputted password
@@ -35,20 +37,21 @@ exports.signUp = asyncHandler (async (req, res) => {
         email,
         password: hashedPassword
     })
-
-    if(!user){
+    
+    if(user){
+        res.status(200).json({
+            _id : user.id,
+            firstname : user.firstname,
+            lastname : user.lastname,
+            username : user.username,
+            email : user.email,
+            token : generateToken(user.id)
+        })
+    
+    } else {
         res.status(400)
         throw new Error("Invalid user data inputted")
     } 
-
-    res.status(200).json({
-        _id : user.id,
-        firstname : user.firstname,
-        lastname : user.lastname,
-        username : user.username,
-        email : user.email,
-        token : generateToken(user.id)
-    })
 })
 
 //@desc Sign in
@@ -66,20 +69,23 @@ exports.signIn = asyncHandler ( async (req, res) => {
     //check if email exist 
     const user = await userModel.findOne({email})
 
-    // res.status(200).json(user)
+    if(!user){
+        res.status(400)
+        throw new Error("User not found")
+    }
 
       //check password 
-      if(user && (await bcrypt.compare(password, user.password))) {
-       
-        res.status(200).json({
-            _id : user.id,
-            firstname : user.firstname,
-            lastname : user.lastname,
-            username : user.username,
-            email : user.email,
-            token : generateToken(user._id)
-        })
-    } else{
+    if(user && (await bcrypt.compare(password, user.password))) {
+     
+      res.status(200).json({
+          _id : user.id,
+          firstname : user.firstname,
+          lastname : user.lastname,
+          username : user.username,
+          email : user.email,
+          token : generateToken(user._id)
+      })
+    } else {
         res.status(400)
         throw new Error("user not found") 
     }
@@ -90,9 +96,13 @@ exports.signIn = asyncHandler ( async (req, res) => {
 //@route GET /home
 //@access Private
 exports.getUser = asyncHandler (async (req, res) => {
-    res.json({
-        message : "Here is the user details"
-    })
+   const { _id, email, username } = await userModel.findById(req.user.id)
+
+   res.status(200).json({
+    id : _id,
+    email : email,
+    username : username
+   })
 })
 
 const generateToken = (id) => {
