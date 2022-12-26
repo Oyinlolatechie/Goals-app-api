@@ -7,10 +7,10 @@ const userRouter = express.Router()
 //sign up route (create user)
 userRouter.post('/', signUp)
 
-//login route
+//login route (login to already created user)
 userRouter.post('/login', signIn)
 
-//Sign in route
+//Get user
 userRouter.get('/user', protect, getUser)
 
 

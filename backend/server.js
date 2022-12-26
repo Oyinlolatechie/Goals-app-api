@@ -1,8 +1,10 @@
+
 const express = require('express');
 const { errorHandler } = require('./middleware/errorMiddleware');
 require('dotenv').config()
 const db = require('./config/dbConfig')
 
+//Routes
 const goalRouter = require('./routes/goalroutes');
 const userRouter = require('./routes/userRoutes');
 

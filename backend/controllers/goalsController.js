@@ -1,12 +1,13 @@
 const asyncHandler = require('express-async-handler')
 const goalModel = require('../models/goalsModel')
+const userModel = require('../models/userModel')
 
 //@desc Get goals
-//@route GET /home
+//@route GET /api/goals
 //@access Public
 exports.getGoals = asyncHandler(async (req, res)=> {
-
-    const goals = await goalModel.find()
+    
+    const goals = await goalModel.find({user: req.user.id})
    
     res.status(201).json({
         status : "success",
@@ -16,7 +17,7 @@ exports.getGoals = asyncHandler(async (req, res)=> {
 
 
 //@desc set goals
-//@route POST /home
+//@route POST /api/goals
 //@access Private
 exports.createGoals =  asyncHandler(async (req, res)=> {
     if(!req.body.text){
@@ -24,8 +25,12 @@ exports.createGoals =  asyncHandler(async (req, res)=> {
     throw new Error("Please add a text")
    }
    
-  const goalToCreate = req.body
-  const goal = await goalModel.create(goalToCreate)
+  
+  const goal = await goalModel.create({
+    text: req.body.text,
+    user: req.user.id
+    })
+
    res.status(201).json({
     status : "success",
     message : goal
@@ -34,7 +39,7 @@ exports.createGoals =  asyncHandler(async (req, res)=> {
 
 
 //@desc update goals
-//@route PUT /home/:id
+//@route PUT /api/goals:id
 //@access
 exports.updateGoals = asyncHandler(async (req, res)=>{
 
@@ -44,6 +49,20 @@ exports.updateGoals = asyncHandler(async (req, res)=>{
     if(!goalToUpdate){
         res.status(404)
         throw new Error("Goal not found")
+    }
+
+    //fecth for user with logged in user ID from user collection
+    const user = await userModel.findById(req.user.id)
+
+    if(!user) {
+        res.status(401)
+        throw new Error("User not found!");
+    }
+
+    //check if user.id matches with loggedin user ID 
+    if( goalToUpdate.user.toString() !== user.id ){
+        res.status(401)
+        throw new Error('User not authorized to update goal')
     }
 
     const update = req.body
@@ -68,6 +87,20 @@ exports.deleteGoals =  asyncHandler(async (req, res)=>{
     if(!goalToDelete){
         res.status(400)
         throw new Error("Goal to delete, does not exist")
+    }
+
+    //get logged in user from db
+    const user = await userModel.findById(req.user.id)
+
+    if(!user){
+        res.status(401);
+        throw new Error("User not found")
+    }
+
+    //check if goal.user matches with logged in user.id
+    if(goalToDelete.user.toString() !==  user.id) {
+        res.status(401)
+        throw new Error (`You're not authorized to delete this blog`)
     }
 
    await goalToDelete.remove()

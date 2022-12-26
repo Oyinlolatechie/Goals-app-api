@@ -22,7 +22,7 @@ exports.signUp = asyncHandler (async (req, res) => {
     const userExists = await userModel.findOne({email})
     if(userExists) {
         res.status(400)
-        throw new Error ("Email already exists!")
+        throw new Error ("Email already registered!")
     } 
 
     //hash inputted password
@@ -74,7 +74,7 @@ exports.signIn = asyncHandler ( async (req, res) => {
         throw new Error("User not found")
     }
 
-      //check password 
+      //check if user exists and if password entered matches with stored password
     if(user && (await bcrypt.compare(password, user.password))) {
      
       res.status(200).json({
@@ -87,13 +87,13 @@ exports.signIn = asyncHandler ( async (req, res) => {
       })
     } else {
         res.status(400)
-        throw new Error("user not found") 
+        throw new Error("wrong password") 
     }
 })
 
 
 //@desc Get user
-//@route GET /home
+//@route GET /users/user
 //@access Private
 exports.getUser = asyncHandler (async (req, res) => {
    const { _id, email, username } = await userModel.findById(req.user.id)
